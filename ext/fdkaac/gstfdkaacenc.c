@@ -130,7 +130,7 @@ static GstStaticPadTemplate src_template = GST_STATIC_PAD_TEMPLATE ("src",
         "rate = (int) { " SAMPLE_RATES " }, "
         "channels = (int) {1, 2, 3, 4, 5, 6, 8}, "
         "stream-format = (string) { adts, adif, raw }, "
-        "base-profile = (string) lc, " "framed = (boolean) true")
+        "base-profile = (string) { lc, eld }, " "framed = (boolean) true")
     );
 
 GST_DEBUG_CATEGORY_STATIC (gst_fdkaacenc_debug);
@@ -250,7 +250,7 @@ gst_fdkaacenc_set_format (GstAudioEncoder * enc, GstAudioInfo * info)
   GstCaps *allowed_caps;
   GstCaps *src_caps;
   AACENC_ERROR err;
-  gint transmux = 0, aot = AOT_AAC_LC;
+  gint transmux = 0, aot = AOT_ER_AAC_ELD; //AOT_AAC_LC;
   gint mpegversion = 4;
   CHANNEL_MODE channel_mode;
   AACENC_InfoStruct enc_info = { 0 };
@@ -295,13 +295,18 @@ gst_fdkaacenc_set_format (GstAudioEncoder * enc, GstAudioInfo * info)
     return FALSE;
   }
 
-  aot = AOT_AAC_LC;
+  aot = AOT_ER_AAC_ELD; //AOT_AAC_LC;
 
   if ((err = aacEncoder_SetParam (self->enc, AACENC_AOT, aot)) != AACENC_OK) {
     GST_ERROR_OBJECT (self, "Unable to set AOT %d: %d\n", aot, err);
     return FALSE;
   }
 
+//  if ((err = aacEncoder_SetParam(self->enc, AACENC_SBR_MODE, 1)) != AACENC_OK) {
+//    GST_ERROR_OBJECT(self, "Unable to enable SBR for ELD\n");
+//    return FALSE;
+//  }
+  
   if ((err = aacEncoder_SetParam (self->enc, AACENC_SAMPLERATE,
               GST_AUDIO_INFO_RATE (info))) != AACENC_OK) {
     GST_ERROR_OBJECT (self, "Unable to set sample rate %d: %d\n",
